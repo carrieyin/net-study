@@ -9,4 +9,5 @@ cli:client.o
 
 .PHONY:clean
 clean:
-	rm server cli $(object) -r *.dSYM
+	rm server cli $(object)
+	rm  -rf *.dSYM

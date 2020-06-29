@@ -7,13 +7,15 @@
 #include <ctype.h>
 #include  <arpa/inet.h>
 
-
 #define SER_PORT 9527
 void sys_err(const char* str)
 {
     perror(str);
     exit(1);
 }
+
+
+const char * getclientip(int sockconn , struct sockaddr_in sa, socklen_t len);
 
 int main()
 {
@@ -33,10 +35,13 @@ int main()
     bind(fd, (const struct sockaddr *)&ser_addr, sizeof(ser_addr));
     listen(fd, 128);
     socklen_t cli_addr_len = sizeof(cli_addr);
+    memset(&cli_addr, 0, sizeof(cli_addr));
     int cfd = accept(fd, &cli_addr, &cli_addr_len);
     char cli_ip[30];
     const char *p = inet_ntop(AF_INET, &cli_addr, cli_ip, cli_addr_len);
-    printf("cli ip: %s, port:%d, ip: %s", cli_ip, ntohs(cli_addr.sin_port), p);
+    printf("cli ip: %s, port:%d \n", p, ntohs(cli_addr.sin_port));
+    //printf("cli ip:", inet_ntoa(&(cli_addr.sin_addr)));
+    //getclientip(cfd, cli_addr, cli_addr_len);
     if(cfd == -1)
     {
         sys_err("accect error");
@@ -57,4 +62,20 @@ int main()
     close(fd);
     close(cfd);
     
+}
+
+const char * getclientip(int sockconn , struct sockaddr_in sa, socklen_t len)
+{
+    if(!getpeername(sockconn, (struct sockaddr *)&sa, &len))
+    {
+        char sql[1024];
+        memset(sql,0,1024);
+        char  mechine_ip[30];
+        char *p  = mechine_ip;
+        memset(mechine_ip, 0, 30);
+        snprintf(sql,1024,"client login. ip: %s, port :%d",inet_ntoa(sa.sin_addr),ntohs(sa.sin_port));
+        snprintf(p,17,"%s",inet_ntoa(sa.sin_addr));
+
+        printf("ip:--- %s", p);
+    }
 }
