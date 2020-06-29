@@ -41,6 +41,7 @@ int main()
     const char *p = inet_ntop(AF_INET, &cli_addr, cli_ip, cli_addr_len);
     printf("cli ip: %s, port:%d \n", p, ntohs(cli_addr.sin_port));
     //printf("cli ip:", inet_ntoa(&(cli_addr.sin_addr)));
+    //下面的函数报错
     //getclientip(cfd, cli_addr, cli_addr_len);
     if(cfd == -1)
     {
