@@ -14,7 +14,8 @@ int main()
     ser_addr.sin_family = AF_INET;
     ser_addr.sin_port = htons(SER_PORT);
     ser_addr.sin_addr.s_addr = htonl(INADDR_ANY);
-    Bind(fd, (const struct socketaddr*)&ser_addr, sizeof(ser_addr));
+    socklen_t len;
+    Bind(fd, (const struct socketaddr*)&ser_addr, &len);
 
     Listen(fd);
 

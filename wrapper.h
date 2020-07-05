@@ -8,7 +8,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <ctype.h>
-#include  <arpa/inet.h>
+#include <arpa/inet.h>
 void sys_err(const char* str);
 int Socket(int domain, int type, int protocol);
 int Bind(int socket, const struct sockaddr *address, socklen_t address_len);
