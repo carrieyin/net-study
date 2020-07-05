@@ -30,6 +30,7 @@ int main()
         pid = fork();
         if(pid > 0) //父进程
         {
+            close(cfd);
             struct sigaction sig;
             sig.sa_handler = sig_child;
             sigemptyset(&sig.sa_mask);
@@ -38,13 +39,14 @@ int main()
         }
         else if(pid == 0)
         {
+            close(fd);
             char buf[BUFSIZ];
             while(1)
             {
                 int size = read(cfd, buf, sizeof(buf));
                 if(size == 0)
                 {
-                    sys_err("read end");
+                    close(cfd); //注意此处需要及时close,否则客户端退出后,accept的时候报错
                 }
 
                 write(cfd, buf, size);
