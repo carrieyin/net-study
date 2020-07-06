@@ -1,20 +1,30 @@
 #include "wrapper.h"
-#define SER_PORT 9527
+#define PORT 6587
 
 int main()
 {
-    int fd = Socket(AF_INET, SOCK_STREAM, 0);
+    /*int fd = Socket(AF_INET, SOCK_STREAM, 0);
 
     int opt = 1;
     setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
     
     struct sockaddr_in ser_addr;
-    //bzero(&ser_addr, sizeof(ser_addr));
     ser_addr.sin_family = AF_INET;
-    ser_addr.sin_port = htons(SER_PORT);
+    ser_addr.sin_port = htons(PORT);
+    ser_addr.sin_len = sizeof(ser_addr);
     ser_addr.sin_addr.s_addr = htonl(INADDR_ANY);
-    socklen_t len;
-    Bind(fd, (const struct socketaddr*)&ser_addr, &len);
+    Bind(fd, (const struct socketaddr*)&ser_addr, &ser_addr.sin_len);*/
+    
+    int fd = Socket(AF_INET, SOCK_STREAM, 0);
+
+    int opt = 1;
+    setsockopt(fd, SOL_SOCKET, SO_REUSEADDR ,&opt, sizeof(opt));
+    struct sockaddr_in seraddr;
+    seraddr.sin_family = AF_INET;
+    seraddr.sin_port = htons(PORT);
+    seraddr.sin_len = sizeof(seraddr);
+    seraddr.sin_addr.s_addr = htonl(INADDR_ANY);
+    Bind(fd, (const struct socketaddr *)(&seraddr), seraddr.sin_len);
 
     Listen(fd);
 
