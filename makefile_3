@@ -2,7 +2,7 @@ object = wrapper.o pthreadserver.o client.o
 all:server cli
 
 server:pthreadserver.o wrapper.o
-	gcc  wrapper.c pthreadserver.c -o server -Wall -g
+	gcc  wrapper.c pthreadserver.c -o server -Wall -g -lpthread
 
 cli:client.o
 	gcc client.c -o cli -Wall -g
