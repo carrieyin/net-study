@@ -1,4 +1,4 @@
-object = wrapper.o server.o client.o 
+object = wrapper.o server2.o client.o 
 all:server
 
 server:server2.o wrapper.o
