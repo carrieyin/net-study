@@ -23,12 +23,15 @@ int main()
     fd_set rset,allset;
     int ret, maxfd;
     maxfd = fd;
-
+    int maxindex = -1;
     FD_ZERO(&allset);
     FD_SET(fd, &allset);
+    int cfds[1024];
+    memset(cfds, -1, sizeof(cfds));
 
     while(1)
     {
+        printf("start-------\n");
         rset = allset;
         ret = select(maxfd + 1, &rset, NULL, NULL, NULL);
         if(ret < 0)
@@ -46,31 +49,53 @@ int main()
             const char *p = inet_ntop(AF_INET, &cli_addr, cli_ip, cli_addr_len);
             printf("cli ip: %s, port:%d \n", p, ntohs(cli_addr.sin_port));
             FD_SET(cfd, &allset);
-
-            if(maxfd < cfd)
+            
+            for(int index = 0; index < 1024; index++)
             {
-                maxfd = cfd;
+                if(cfds[index] < 0)
+                {
+                    cfds[index] = cfd;
+                    break;
+                }
+            }
+            if(index == 1024)
+            {
+                sys_err("out of max fd");
             }
 
-            if(ret == 1) //只返回listenfd，后续无需执行
+            if(maxindex < index)
+            {
+                maxindex = index;
+            }
+            printf("maxindex %d \n", maxindex);
+            if(--ret == 0) //只返回listenfd，后续无需执行
             {
                 continue;
             }
         }
-
-        for(int i = fd + 1; i <= maxfd; i++)
+        
+        for(int i = 0; i <= maxindex; i++)
         {
-            if(FD_ISSET(i, &rset))
+            printf("connet fd %d \n", cfds[i]);
+            int socketfd = cfds[i];
+            if(socketfd < 0)
+            {
+                continue;
+            }
+            
+            if(FD_ISSET(socketfd, &rset))
             {
                 char buf[BUFSIZ];
-                int n = Read(i, buf, sizeof(buf));
-                if(n == -1)
+                int n = Read(socketfd, buf, sizeof(buf));
+                if(n < 0)
                 {
                     sys_err("read error");
-                }else if(n == 0)
+                }
+                else if(n == 0)
                 {
-                    close(i);
-                    FD_CLR(i, &allset);
+                    close(socketfd);
+                    cfds[i] = -1;
+                    FD_CLR(socketfd, &allset);
                 }
                 else
                 {
@@ -84,9 +109,16 @@ int main()
                 }
                 
             }
+
+            if(--ret == 0)
+            {
+                break;
+            }
         }
+
+        
     }
 
-    
     close(fd);   
+    return 0;
 }

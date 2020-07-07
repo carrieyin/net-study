@@ -56,23 +56,12 @@ int Accept(int socket, struct sockaddr *restrict address, socklen_t *restrict ad
 int Read(int socket, char* buf, int size)
 {
     int ret = 0;
-    while (1)
+    
+    ret = read(socket, buf, sizeof(buf));
+    if(ret < 0)
     {
-        ret = read(socket, buf, sizeof(buf));
-        if(ret < 0)
-        {
-            sys_err("ser read error");
-        }
-        //printf("start read %d bytes\n", ret);
-        write(STDOUT_FILENO, buf, ret);
-        for(int i = 0; i < ret; i++)
-        {
-            buf[i] = toupper(buf[i]);
-        }
-        printf("end read %d bytes\n", ret);
-        sleep(1);
-        
+        sys_err("ser read error");
     }
-
+     
     return ret;
 }

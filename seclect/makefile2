@@ -1,0 +1,11 @@
+object = wrapper.o server.o client.o 
+all:server
+
+server:server2.o wrapper.o
+	gcc  wrapper.c server2.c -o server -Wall -g
+
+
+.PHONY:clean
+clean:
+	- rm server   $(object)
+	rm  -rf *.dSYM
