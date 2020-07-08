@@ -27,13 +27,18 @@ int main()
     FD_ZERO(&allset);
     FD_SET(fd, &allset);
     int cfds[1024];
-    memset(cfds, -1, sizeof(cfds));
+    for(int i = 0; i < 1024; i++)
+    {
+        cfds[i] = -1;
+    }
+    
 
     while(1)
     {
         printf("start-------\n");
         rset = allset;
         ret = select(maxfd + 1, &rset, NULL, NULL, NULL);
+        printf("select ret %d \n", ret);
         if(ret < 0)
         {
             sys_err("select error");
@@ -48,9 +53,11 @@ int main()
             bzero(cli_ip, sizeof(cli_ip));
             const char *p = inet_ntop(AF_INET, &cli_addr, cli_ip, cli_addr_len);
             printf("cli ip: %s, port:%d \n", p, ntohs(cli_addr.sin_port));
-            FD_SET(cfd, &allset);
             
-            for(int index = 0; index < 1024; index++)
+            printf("maxfd %d\n", maxfd);
+            
+            int index = 0;
+            for(; index < 1024; index++)
             {
                 if(cfds[index] < 0)
                 {
@@ -62,6 +69,13 @@ int main()
             {
                 sys_err("out of max fd");
             }
+            FD_SET(cfd, &allset);
+
+            if(maxfd < cfd)
+            {
+                 maxfd = cfd;
+            }
+            
 
             if(maxindex < index)
             {
@@ -73,7 +87,7 @@ int main()
                 continue;
             }
         }
-        
+        printf("----maxindex--%d\n", maxindex);
         for(int i = 0; i <= maxindex; i++)
         {
             printf("connet fd %d \n", cfds[i]);
@@ -85,6 +99,7 @@ int main()
             
             if(FD_ISSET(socketfd, &rset))
             {
+                printf("*********\n");
                 char buf[BUFSIZ];
                 int n = Read(socketfd, buf, sizeof(buf));
                 if(n < 0)
@@ -104,16 +119,22 @@ int main()
                         buf[j] = toupper(buf[j]);
                     }
 
-                    write(i, buf, n);
+                    write(socketfd, buf, n);
                     write(STDOUT_FILENO, buf, n);
+                }
+                //注意放在外面有问题，会导致第二个发送的conn,一直无法读取，而select一直有可读集合，死循环
+                if(--ret == 0)
+                {
+                    break;
                 }
                 
             }
 
-            if(--ret == 0)
-            {
-                break;
-            }
+                /*if(--ret == 0)
+                {
+                    break;
+                }*/
+            
         }
 
         

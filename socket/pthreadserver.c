@@ -23,7 +23,6 @@ void * thread_work(void * arg)
 int main()
 {
     int fd = Socket(AF_INET, SOCK_STREAM, 0);
-    fd = Socket(AF_INET, SOCK_STREAM, 0);
 
     int opt = 1;
     setsockopt(fd, SOL_SOCKET, SO_REUSEADDR ,&opt, sizeof(opt));
