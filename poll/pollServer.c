@@ -1,5 +1,6 @@
 #include "wrapper.h"
 #include "poll.h"
+#include <sys/errno.h>
 
 #define PORT 9999
 #define OPEN_MAX 1024
@@ -30,23 +31,36 @@ int main()
     pollfds[0].fd = fd;
     pollfds[0].events = POLL_IN;
 
+    for(int i = 1; i < 1024; i++)
+    {
+        pollfds[i].fd = -1;
+        pollfds[i].events = POLL_IN;
+    }
     
-    int nready =0;
+    int nready = 0;
     while(1)
     {
         nready = poll(pollfds, max + 1, -1);
-
+        printf("ready %d \n", nready);
         if(nready  < 0)
         {
-            continue;
+            sys_err("poll error");
         }
 
         if(pollfds[0].revents == POLL_IN)
         {
             int cfd = Accept(fd, &cli_addr, &cli_addr_len);
-            index++;
-            pollfds[index].fd = cfd;
-            pollfds[index].events = POLL_IN;
+            printf("acceped\n");
+            
+            for(int i = 1; i < 1024; i++)
+            {
+                if(pollfds[i].fd == -1)
+                {
+                    pollfds[i].fd = cfd;
+                    pollfds[i].events = POLL_IN;
+                    break;
+                }
+            }
             max++;
 
             if(--nready == 0)
@@ -55,19 +69,29 @@ int main()
             }
         }
         
-        for(int i = 1; i < max; i++)
+        for(int i = 1; i <= max; i++)
         {
             if(pollfds[i].revents == POLL_IN)
             {
                 char buf[BUFSIZ];
                 int nread = Read(pollfds[i].fd, buf, BUFSIZ);
+                printf("read %d bytes \n", nread);
                 if(nread == 0)
                 {
                     close(pollfds[i].fd);
+                    pollfds[i].fd = -1;
                 }else if(nread > 0)
                 {
                     write(pollfds[i].fd, buf, nread);
                     write(STDOUT_FILENO, buf, nread);
+                }
+                else 
+                {
+                    if(errno == ECONNRESET)
+                    {
+                        close(pollfds[i].fd);
+                        pollfds[i].fd = -1;
+                    }
                 }
             }
         }
