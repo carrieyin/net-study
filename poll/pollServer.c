@@ -24,11 +24,54 @@ int main()
     memset(&cli_addr, 0, sizeof(cli_addr));
 
     int max = 0;
+    int index = 0;
     struct pollfd pollfds[OPEN_MAX];
-    struct pollfd listenpool;
-    listenpool.fd = fd;
-    listenpool.events = POLL_IN;
+
+    pollfds[0].fd = fd;
+    pollfds[0].events = POLL_IN;
+
     
+    int nready =0;
+    while(1)
+    {
+        nready = poll(pollfds, max + 1, -1);
 
+        if(nready  < 0)
+        {
+            continue;
+        }
 
+        if(pollfds[0].revents == POLL_IN)
+        {
+            int cfd = Accept(fd, &cli_addr, &cli_addr_len);
+            index++;
+            pollfds[index].fd = cfd;
+            pollfds[index].events = POLL_IN;
+            max++;
+
+            if(--nready == 0)
+            {
+                continue;
+            }
+        }
+        
+        for(int i = 1; i < max; i++)
+        {
+            if(pollfds[i].revents == POLL_IN)
+            {
+                char buf[BUFSIZ];
+                int nread = Read(pollfds[i].fd, buf, BUFSIZ);
+                if(nread == 0)
+                {
+                    close(pollfds[i].fd);
+                }else if(nread > 0)
+                {
+                    write(pollfds[i].fd, buf, nread);
+                    write(STDOUT_FILENO, buf, nread);
+                }
+            }
+        }
+
+    }
+    
 }
