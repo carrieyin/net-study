@@ -21,7 +21,6 @@ int Socket(int domain, int type, int protocol)
 
 int Bind(int socket, const struct sockaddr *address, socklen_t address_len)
 {
-    
     int ret = bind(socket, address, address_len); 
     if(ret != 0)
     {
@@ -41,7 +40,7 @@ int Listen(int socket)
     return ret;
 }
 
-int Accept(int socket, struct sockaddr *restrict address, socklen_t *restrict address_len)
+int Accept(int socket, struct sockaddr * address, socklen_t * address_len)
 {
     int cfd = accept(socket, address, address_len);
     if(cfd < 0)

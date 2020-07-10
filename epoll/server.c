@@ -1,6 +1,10 @@
 #include "../common/wrapper.h"
-#define PORT 6587
+//mac下无epoll
+#include <sys/epoll.h>
 
+#define PORT 8888 
+#define OPEN_MAX 1024
+#define MAXLINE 1024
 int main()
 {
     int fd = Socket(AF_INET, SOCK_STREAM, 0);
@@ -11,82 +15,71 @@ int main()
     struct sockaddr_in ser_addr;
     ser_addr.sin_family = AF_INET;
     ser_addr.sin_port = htons(PORT);
-    ser_addr.sin_len = sizeof(ser_addr);
+    //ser_addr.sin_len = sizeof(ser_addr);
     ser_addr.sin_addr.s_addr = htonl(INADDR_ANY);
-    Bind(fd, (const struct socketaddr*)&ser_addr, ser_addr.sin_len);
+    Bind(fd, (const struct socketaddr*)&ser_addr, sizeof(ser_addr));
 
     Listen(fd);
 
     struct sockaddr_in cli_addr;
     socklen_t cli_addr_len = sizeof(cli_addr);
     memset(&cli_addr, 0, sizeof(cli_addr));
-    fd_set rset,allset;
-    int ret, maxfd;
-    maxfd = fd;
-
-    FD_ZERO(&allset);
-    FD_SET(fd, &allset);
-
-    while(1)
+   
+    int efd;
+    efd = epoll_create(OPEN_MAX);
+    if(efd == -1)
     {
-        rset = allset;
-        ret = select(maxfd + 1, &rset, NULL, NULL, NULL);
-        if(ret < 0)
-        {
-            sys_err("select error");
-        }
-
-        if(FD_ISSET(fd, &rset))
-        {
-            printf("select fd \n");
-            int cfd = Accept(fd, &(cli_addr), &cli_addr_len);
-
-            char cli_ip[30];
-            bzero(cli_ip, sizeof(cli_ip));
-            const char *p = inet_ntop(AF_INET, &cli_addr, cli_ip, cli_addr_len);
-            printf("cli ip: %s, port:%d \n", p, ntohs(cli_addr.sin_port));
-            FD_SET(cfd, &allset);
-
-            if(maxfd < cfd)
-            {
-                maxfd = cfd;
-            }
-
-            if(ret == 1) //只返回listenfd，后续无需执行
-            {
-                continue;
-            }
-        }
-
-        for(int i = fd + 1; i <= maxfd; i++)
-        {
-            if(FD_ISSET(i, &rset))
-            {
-                char buf[BUFSIZ];
-                int n = Read(i, buf, sizeof(buf));
-                if(n == -1)
-                {
-                    sys_err("read error");
-                }else if(n == 0)
-                {
-                    close(i);
-                    FD_CLR(i, &allset);
-                }
-                else
-                {
-                    for(int j = 0; j < n; j++)
-                    {
-                        buf[j] = toupper(buf[j]);
-                    }
-
-                    write(i, buf, n);
-                    write(STDOUT_FILENO, buf, n);
-                }
-                
-            }
-        }
+	sys_err("epoll error");
     }
 
-    
-    close(fd);   
-}
+   struct epoll_event tep, ep[OPEN_MAX];
+   tep.data.fd = fd;
+   tep.events = EPOLLIN;
+   ssize_t res = epoll_ctl(efd, EPOLL_CTL_ADD,fd, &tep);
+   if(res == -1)
+   {
+       sys_err("epoll ctl error");
+   }
+   
+   int nready = 0;
+   while(1)
+   {
+       nready = epoll_wait(efd, ep, OPEN_MAX, -1);
+       if(nready == -1)
+       {
+           sys_err("epoll wait error");
+       }
+       int i = 0;
+       for(; i < nready; i++)
+       {
+           if(!(ep[i].events & EPOLLIN))
+           {
+               continue;
+           }
+       
+           if(ep[i].data.fd == fd)
+           {
+               int connectfd = Accept(fd, (struct sockaddr*)&cli_addr, &cli_addr_len);
+               tep.events = EPOLLIN;
+               tep.data.fd = connectfd;
+               res = epoll_ctl(efd, EPOLL_CTL_ADD, connectfd, &tep);
+               if(res == -1)
+               {
+                   sys_err("epoll ctl error");
+               }
+           }else
+           {
+              int sofd = ep[i].data.fd;
+              char buf[MAXLINE];
+              int n = Read(sofd, buf, MAXLINE);
+              if(n == 0)
+              {
+                  epoll_ctl(efd, EPOLL_CTL_DEL, sofd, NULL);
+              }
+              write(STDOUT_FILENO, buf,n);
+           }
+
+
+       } 
+   }
+} 
