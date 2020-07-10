@@ -1,3 +1,3 @@
 #!/bin/sh
 
-find . -name *.o|rm -rf  
+find . -name *.o|xargs rm -rf  
