@@ -5,6 +5,7 @@
 #define PORT 8888 
 #define OPEN_MAX 1024
 #define MAXLINE 1024
+
 int main()
 {
     int fd = Socket(AF_INET, SOCK_STREAM, 0);
@@ -40,11 +41,14 @@ int main()
    {
        sys_err("epoll ctl error");
    }
+
    
-   int nready = 0;
+  int nready = 0;
+
    while(1)
    {
        nready = epoll_wait(efd, ep, OPEN_MAX, -1);
+       printf("%d ready io\n", nready);
        if(nready == -1)
        {
            sys_err("epoll wait error");
@@ -60,6 +64,7 @@ int main()
            if(ep[i].data.fd == fd)
            {
                int connectfd = Accept(fd, (struct sockaddr*)&cli_addr, &cli_addr_len);
+               printf("accecpt \n");
                tep.events = EPOLLIN;
                tep.data.fd = connectfd;
                res = epoll_ctl(efd, EPOLL_CTL_ADD, connectfd, &tep);
@@ -72,9 +77,11 @@ int main()
               int sofd = ep[i].data.fd;
               char buf[MAXLINE];
               int n = Read(sofd, buf, MAXLINE);
+              printf("read %d byte \n", n);
               if(n == 0)
               {
                   epoll_ctl(efd, EPOLL_CTL_DEL, sofd, NULL);
+                  close(sofd);
               }
               write(STDOUT_FILENO, buf,n);
            }
