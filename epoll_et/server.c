@@ -28,9 +28,10 @@ int main()
 
         struct epoll_event tep;
         tep.data.fd = pfd[0];
-        //tep.events = EPOLLIN | EPOLLET;
-        tep.events = EPOLLIN;
+        tep.events = EPOLLIN | EPOLLET;
+        //tep.events = EPOLLIN;
         ssize_t res = epoll_ctl(efd, EPOLL_CTL_ADD, pfd[0], &tep);
+
         if(res == -1)
         {
             sys_err("epoll ctl error");
@@ -44,7 +45,7 @@ int main()
             if(nready > 0)
             {
                 char buf[BUFSIZ];
-                int nread = Read(pfd[0], buf, 4);
+                int nread = Read(pfd[0], buf, 5);
                 //printf("read %d \n", nread);
                 write(STDOUT_FILENO, buf, nread);
             }
