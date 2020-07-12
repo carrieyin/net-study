@@ -56,10 +56,11 @@ int Read(int socket, char* buf, int size)
 {
     int ret = 0;
     
-    ret = read(socket, buf, sizeof(buf));
+    ret = read(socket, buf, size);
     if(ret < 0)
     {
         sys_err("ser read error");
+
     }
      
     return ret;
