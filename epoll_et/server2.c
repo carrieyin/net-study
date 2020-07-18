@@ -19,7 +19,7 @@ int main()
     ser_addr.sin_port = htons(PORT);
     //ser_addr.sin_len = sizeof(ser_addr);
     ser_addr.sin_addr.s_addr = htonl(INADDR_ANY);
-    Bind(fd, (const struct socketaddr*)&ser_addr, sizeof(ser_addr));
+    Bind(fd, (const struct sockaddr*)&ser_addr, sizeof(ser_addr));
 
     Listen(fd);
 
