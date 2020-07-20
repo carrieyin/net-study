@@ -8,7 +8,7 @@
 #include <errno.h>
 
 //mac下无epoll
-
+//该实现细节存在问题待修复，比如send获取的buf，由于之前eventset 导致buf是空
 #define MAX_EVENTS 1024
 #define BUFLEN 4096
 #define SERV_PROT 8080
@@ -157,6 +157,7 @@ void senddata(int fd, int events, void* arg)
 {
     struct myevent_s *ev = (struct myevent_s *)arg;
     int len;
+    //此处有问题
     len = send(fd, ev->buf, ev->len, 0);
     eventdel(g_efd, ev);
     if(len > 0)
