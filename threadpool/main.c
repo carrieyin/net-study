@@ -11,7 +11,7 @@ void *(*function) (void *);
 /*函数指针，回调函数*/
 void *arg;
 /* .上面函数的参数*/
-}threadpoo1_task_t;
+}threadpool_task_t;
 I
 /*各子线程任务结构体*/;
 
@@ -28,7 +28,7 @@ pthread_t *threads;
 /*存放线程池中每个线程的tid。数组*/
 pthread_t adjust_tid;
 /*存管理线程tid. */
-threadpoo1_task_t *task_queue;
+threadpoo_task_t *task_queue;
 /*任务队列(数组首地址) */
 int min_thr_num;
 /*线程池最小线程数*/
@@ -58,32 +58,65 @@ void threadpool_free(threadpool_t *pool);
 void* threadpool_thread(void * threadpool)
 {
     threadpool_t *pool = (threadpool_t *) threadpool;
+    threadpool_task_t task;
     while (true)
     {
         printf("thread 0x%x is waiting \n", (unsigned int)pthread_self());
         while((pool->queue_size == 0) && (!pool->shutdown))
         {
             pthread_cond_wait(&(pool->queue_not_empty), &(pool->lock));
+        }
 
-            //清除指定数目的空闲线程，如果要结束的线程个数大于0,结束线程
-            if(pool->wait_exit_thr_num > 0)
+        //清除指定数目的空闲线程，如果要结束的线程个数大于0,结束线程
+        if(pool->wait_exit_thr_num > 0)
+        {
+            pool->wait_exit_thr_num--;
+
+            //如果线程池里的个数大于最小值时可以结束当前线程
+            if(pool->live_thr_num > pool->min_thr_num)
             {
-                pool->wait_exit_thr_num--;
+                printf("thread 0x %x is exitting \n", (unsigned int)pthread_self());
+                pool->live_thr_num--;
+                pthread_mutex_lock(&(pool->lock));
 
-                //如果线程池里的个数大于最小值时可以结束当前线程
-                if(pool->live_thr_num > pool->min_thr_num)
-                {
-                    printf("thread 0x %x is exitting \n", (unsigned int)pthread_self());
-                    pool->live_thr_num--;
-                    pthread_mutex_lock(&(pool->lock));
-
-                    pthread_exit(NULL);
-                }
+                pthread_exit(NULL);
             }
         }
-    }
-    
 
+        //从任务队列里获取任务，是一个出队操作
+        task.function = pool->task_queue[pool->queue_front].function;
+        task.arg = pool->task_queue[pool->queue_front].arg;
+
+        //出队
+        pool->queue_front = (pool->queue_front + 1)% pool->queue_max_size;
+        pool->queue_size--;
+
+        //通知可以有新的任务加进来
+        pthread_cond_broadcast(&(pool->queue_not_fu11));
+
+        //任务取出后，立即释放线程锁
+        pthread_mutex_unlock(&(pool->lock));
+
+        //执行任务
+        printf("thread 0x%x start working \n", (unsigned int)pthread_self());
+        //忙线程数量+1
+        pthread_mutex_lock(&(pool->thread_counter));
+        pool->busy_thr_num++;
+        pthread_mutex_unlock(&(pool->thread_counter));
+
+        //执行业务处理任务
+        (*(task.function))(task.arg);
+
+        //任务结束处理
+        printf("thread 0x%x word end \n", (unsigned int)pthread_self());
+        pthread_mutex_lock(&(pool->thread_counter));
+        pool->busy_thr_num--;
+        pthread_mutex_unlock(&(pool->thread_counter));
+
+    }
+
+    pthread_exit(NULL);
+    
 }
 
 void* adjust_thead(void * threadpool)
@@ -169,6 +202,52 @@ threadpool_t* threadpool_create(int min_thr_num, int max_thr_num, int queue_max_
     } while (0);
     
     threadpool_free(pool);
+    return NULL;
+}
+
+
+void threadpool_add(threadpool_t *pool, void*(*function)(void *arg), void *arg)
+{
+    pthread_mutex_lock(&(pool->lock));
+    //队列满，阻塞
+    while ((pool->queue_size == pool->queue_max_size) && (!pool->shutdown))
+    {
+        pthread_cond_wait(&(pool->queue_not_fu11), &(pool->lock));
+    }
+
+    if(pool->shutdown)
+    {
+        pthread_cond_broadcast(&(pool->queue_not_empty));
+        pthread_mutex_unlock(&(pool->lock));
+        return 0;
+
+    }
+
+    //清空工作相称 调用的回调函数的参数的 arg
+    if(pool->task_queue[pool->queue_rear].arg != NULL)
+    {
+        pool->task_queue[pool->queue_rear].arg = NULL;
+    }
+
+    //添加任务到任务队列里
+    pool->task_queue[pool->queue_rear].function = function;
+    pool->task_queue[pool->queue_rear].arg = arg;
+    pool->queue_rear = (pool->queue_rear + 1) % pool->queue_max_size;
+    pool->queue_size++;          //向任务队列中添加一个任务
+
+    //添加任务后，队列不为空，唤醒线程池中的等待处理任务的线程
+    pthread_cond_signal(&pool->queue_not_empty);
+    pthread_mutex_unlock(&(pool->lock));
+
+    return 0;
+}
+
+//具体业务处理在此实现
+void *process(void *arg)
+{
+    printf("thread 0x%x working on task %d \n", (unsigned int)pthread_self(), (int)arg);
+    sleep(1);                  //模拟业务处理
+    printf("task %d is end \n", (int)arg);
 
     return NULL;
 }
