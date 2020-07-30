@@ -9,11 +9,8 @@
 
 int main()
 {
-    int efd;
-    
-   
-  int nready = 0;
-
+   int efd;    
+   int nready = 0;
    int pfd[2];
    pipe(pfd);
    int pid = fork();

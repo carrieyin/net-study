@@ -6,3 +6,6 @@ server:server.o
 
 client:client.o
 	gcc -o client client.c
+
+clean:
+	rm server client

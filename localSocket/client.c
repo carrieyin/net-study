@@ -33,7 +33,6 @@ int main()
     unlink(CLI_PATH);
     bind(fd, (const struct socketaddr*)&cli_addr, len);
 
-   
     struct sockaddr_un ser_addr;
     ser_addr.sun_family = AF_UNIX;
     strcpy(ser_addr.sun_path, SER_PATH);
@@ -46,12 +45,18 @@ int main()
     }
 
     int size = 0;
-    while((size = fgets(buf, sizeof(buf), stdin)) > 0)    
+    while(1)
     {
+        
+        fgets(buf, sizeof(buf), stdin);
+        size = strlen(buf); 
+
         if(write(fd, buf, size)< 0)
         {
             sys_err("write error");
         }
+        memset(buf,0, sizeof(buf));
+        read(fd, buf, BUFSIZ);
         write(STDOUT_FILENO, buf, size);
         //printf("write \n");
     }

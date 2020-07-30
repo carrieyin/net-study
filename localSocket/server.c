@@ -44,7 +44,13 @@ int main()
         int size;
         while((size = read(cfd, buf, sizeof(buf))) > 0)
         {
+            for (int i = 0; i < sizeof(buf); i++)
+            {
+                buf[i] = toupper(buf[i]);
+            }
+            
              write(cfd, buf, size);
+             write(STDOUT_FILENO, buf, size);
         }
            
     }
