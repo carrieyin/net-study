@@ -12,6 +12,7 @@ int main()
     struct event_base *base = event_base_new();
     char **buf;
     buf = event_get_supported_methods();
+    
     char **p = buf;
     while (p != NULL && *p != NULL)
     {
