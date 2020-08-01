@@ -24,9 +24,9 @@ void event_cb(struct bufferevent *bev, short events, void* arg)
     struct sockaddr_in * cliaddr = (struct sockaddr_in *) arg;
     if(events | BEV_EVENT_CONNECTED)
     {
-        char ip[30];
+        /*char ip[30];
         inet_ntop(AF_INET, &cliaddr->sin_addr.s_addr, ip, sizeof(*cliaddr));
-        printf("client connected ip: %s, port: %d\n", ip, ntohs(cliaddr->sin_port));
+        printf("client connected ip: %s, port: %d\n", ip, ntohs(cliaddr->sin_port));*/
     }
 }
 
@@ -34,7 +34,7 @@ void event_cb(struct bufferevent *bev, short events, void* arg)
 //typedef void (*evconnlistener_cb)(struct evconnlistener *, evutil_socket_t, struct sockaddr *, int socklen, void *);
 //被回调说明客户端成功连接， cfd已经传入参数内部，创建bufferevent事件
 //与客户端完成读写操作
-void listener_cb(struct evconnlistener * liser, evutil_socket_t fd, struct sockaddr * ser, int socklen, void * ptr)
+void listener_cb(struct evconnlistener * liser, evutil_socket_t fd, struct sockaddr * caddr, int socklen, void * ptr)
 {
     struct event_base *base = (struct event_base*)ptr;
 
@@ -42,7 +42,11 @@ void listener_cb(struct evconnlistener * liser, evutil_socket_t fd, struct socka
     struct bufferevent *bev = bufferevent_socket_new(base, fd, BEV_OPT_CLOSE_ON_FREE);
 
     //设置回调函数
-    bufferevent_setcb(bev, read_cb, write_cb, event_cb, ser);
+    bufferevent_setcb(bev, read_cb, write_cb, event_cb, caddr);
+    char ip[30];
+    struct sockaddr_in * paddr = (struct sockaddr_in * )caddr;
+    inet_ntop(AF_INET, paddr, ip, sizeof(*paddr));
+    printf("client connected ip: %s, port: %d\n", ip, ntohs(paddr->sin_port));
 
     //启动read缓冲区 使能状态，默认禁用
     bufferevent_enable(bev, EV_READ);
