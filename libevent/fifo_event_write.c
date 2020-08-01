@@ -19,7 +19,6 @@ void write_cb(int fd, short what, void *arg)
 
 int main()
 {
-
     int fd = open("fifoevent", O_WRONLY | O_NONBLOCK);
     if(fd == -1)
     {
