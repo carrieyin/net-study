@@ -45,7 +45,7 @@ void listener_cb(struct evconnlistener * liser, evutil_socket_t fd, struct socka
     bufferevent_setcb(bev, read_cb, write_cb, event_cb, caddr);
     char ip[30];
     struct sockaddr_in * paddr = (struct sockaddr_in * )caddr;
-    inet_ntop(AF_INET, paddr, ip, sizeof(*paddr));
+    inet_ntop(AF_INET, paddr, ip, socklen);
     printf("client connected ip: %s, port: %d\n", ip, ntohs(paddr->sin_port));
 
     //启动read缓冲区 使能状态，默认禁用
