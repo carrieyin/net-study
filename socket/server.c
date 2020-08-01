@@ -14,15 +14,15 @@ int main()
     ser_addr.sin_family = AF_INET;
     ser_addr.sin_port = htons(SER_PORT);
     ser_addr.sin_addr.s_addr = htonl(INADDR_ANY);
-    socklen_t len;
-    Bind(fd, (const struct socketaddr*)&ser_addr, &len);
+    socklen_t len = sizeof(ser_addr);
+    Bind(fd, (struct sockaddr*)&ser_addr, len);
 
     Listen(fd);
 
     struct sockaddr_in cli_addr;
     socklen_t cli_addr_len = sizeof(cli_addr);
     memset(&cli_addr, 0, sizeof(cli_addr));
-    int cfd = Accept(fd, &(cli_addr), &cli_addr_len);
+    int cfd = Accept(fd, (struct sockaddr*)&(cli_addr), &cli_addr_len);
 
     char cli_ip[30];
     const char *p = inet_ntop(AF_INET, &cli_addr, cli_ip, cli_addr_len);

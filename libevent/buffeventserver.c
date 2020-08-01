@@ -20,7 +20,13 @@ void write_cb(struct bufferevent *bev, void *arg)
 
 void event_cb(struct bufferevent *bev, short events, void* arg)
 {
-
+    struct sockaddr_in * cliaddr = (struct sockaddr_in *) arg;
+    if(events | BEV_EVENT_CONNECTED)
+    {
+        char ip[30];
+        inet_ntop(AF_INET, &cliaddr->sin_addr.s_addr, ip, sizeof(*cliaddr));
+        printf("client connected ip: %s, port: %d\n", ip, ntohs(cliaddr->sin_port));
+    }
 }
 
 //listen回调
@@ -35,7 +41,7 @@ void listener_cb(struct evconnlistener * liser, evutil_socket_t fd, struct socka
     struct bufferevent *bev = bufferevent_socket_new(base, fd, BEV_OPT_CLOSE_ON_FREE);
 
     //设置回调函数
-    bufferevent_setcb(bev, read_cb, write_cb, event_cb, NULL);
+    bufferevent_setcb(bev, read_cb, write_cb, event_cb, ser);
 
     //启动read缓冲区 使能状态，默认禁用
     bufferevent_enable(bev, EV_READ);
