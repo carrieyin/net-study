@@ -3,6 +3,7 @@
 #include <string.h>
 #include <event2/bufferevent.h>
 #include <event2/listener.h>
+#include <arpa/inet.h>
 
 void read_cb(struct bufferevent *bev, void *arg)
 {
@@ -33,7 +34,7 @@ void event_cb(struct bufferevent *bev, short events, void* arg)
 //typedef void (*evconnlistener_cb)(struct evconnlistener *, evutil_socket_t, struct sockaddr *, int socklen, void *);
 //被回调说明客户端成功连接， cfd已经传入参数内部，创建bufferevent事件
 //与客户端完成读写操作
-void listener_cb(struct evconnlistener * liser, evutil_socket_t fd, struct sockaddr * ser, int socken, void * ptr)
+void listener_cb(struct evconnlistener * liser, evutil_socket_t fd, struct sockaddr * ser, int socklen, void * ptr)
 {
     struct event_base *base = (struct event_base*)ptr;
 
