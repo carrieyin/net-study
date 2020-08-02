@@ -236,7 +236,7 @@ void do_accept(int lfd, int efd)
 
     struct epoll_event ev;
     ev.data.fd = cfd;
-    ev.events = EPOLLIN & EPOLLET;
+    ev.events = EPOLLIN | EPOLLET;
 
     int ret = epoll_ctl(efd, EPOLL_CTL_ADD, cfd, &ev);
     if(ret == -1)
