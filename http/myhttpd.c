@@ -9,6 +9,7 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <fcntl.h>
+#include <errno.h>
 
 #define MAXSIZE 2048
 
@@ -119,7 +120,7 @@ void sendResponse(int cfd, int no, char *disp, char *type,int len)
     char buf[1024] = {0};
     sprintf(buf, "HTTP/1.1 %d %s \r\n", no, disp);
 
-    sprintf(buf, "%s \r\n", type);
+    sprintf(buf, "Content-Type: %s \r\n", type);
     sprintf(buf + strlen(buf), "Content-Length:%d \r\n", len);
     sprintf(buf + strlen(buf), "\r\n");
     send(cfd, buf, strlen(buf), 0);
@@ -139,12 +140,43 @@ void sendfile(int cfd, char* file)
     while ((n = read(fd, buf, sizeof(buf))) > 0)
     {
         /* code */
-        send(cfd, buf, n, 0);
+        int ret = send(cfd, buf, n, 0);
+        //此处务必判定，否则会影响大文件的传输
+        if (ret == -1) { 
+			printf("errno = %d\n", errno);
+			if (errno == EAGAIN) {
+				printf("-----------------EAGAIN\n");
+				continue;
+			} else if(errno == EINTR) {
+				printf("-----------------EINTR\n");
+				continue;
+			} else { 
+				perror("send error");	
+				exit(1);
+			}	
+		}
     }
     
     close(fd);
 }
 
+//判定文件类型
+void getfileType(char * filename, char name[256], char extend[10], char type[30])
+{
+    printf("file name: %s \n", filename);
+    sscanf(filename, "%[^.].%s", name, extend);
+    printf("name:%s, extend:%s \n", name, extend);
+    
+    if(strncasecmp(extend, "jpg", 3) == 0)
+    {
+        strcpy(type, "image/jpeg");
+    }
+    else
+    {
+        strcpy(type, "text/plain; charset=iso-8859-1");
+    }
+    
+}
 //处理http请求，判定文件是否存在，回发文件内容
 void http_request(int cfd, char * file)
 {
@@ -168,7 +200,12 @@ void http_request(int cfd, char * file)
         */
         int resstatus = 200;
         char* desp = "OK";
-        char* type = "Content-Type: text/plain; charset=iso-8859-1";
+        char name[256];
+        char extend[10];
+        char type[30];
+        getfileType(file, name, extend, type);
+        //char* type = "Content-Type: text/plain; charset=iso-8859-1";  
+
         int len = sbuf.st_size;
         sendResponse(cfd, resstatus, desp, type, len);
         
