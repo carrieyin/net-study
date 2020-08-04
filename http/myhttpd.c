@@ -12,7 +12,8 @@
 #include <errno.h>
 
 #define MAXSIZE 2048
-
+//TODO:
+//处理小图标的请求ico的固定文件，且之后取消监听该描述符
 int init_listen_fd(int port, int efd)
 {
     int lfd = socket(AF_INET, SOCK_STREAM, 0);
@@ -121,10 +122,24 @@ void sendResponse(int cfd, int no, char *disp, char *type,int len)
     sprintf(buf, "HTTP/1.1 %d %s \r\n", no, disp);
 
     sprintf(buf, "Content-Type: %s \r\n", type);
-    sprintf(buf + strlen(buf), "Content-Length:%d \r\n", len);
+    sprintf(buf + strlen(buf), "Content-Length:%d \r\n", -1);
     sprintf(buf + strlen(buf), "\r\n");
     send(cfd, buf, strlen(buf), 0);
 }
+
+void senderror(int cfd)
+{
+    char buf[1024] = {0};
+    sprintf(buf, "HTTP/1.1 %d %s \r\n", 200, "OK");
+
+    sprintf(buf, "Content-Type: %s \r\n", "text/html");
+    sprintf(buf + strlen(buf), "Content-Length:%d \r\n", -1);
+    sprintf(buf + strlen(buf), "\r\n");
+    char html[1024] = "<!DOCTYPE html><html> <title> 404 not found </title> <body background=\"0xffff\"><div>404 NOT Found</div><hr></body></html>";
+    sprintf(buf + strlen(buf), "%s", html);
+    send(cfd, buf, strlen(buf), 0);
+}
+
 //发送文件内容给浏览
 void sendfile(int cfd, char* file)
 {
@@ -133,7 +148,8 @@ void sendfile(int cfd, char* file)
     if(fd == -1)
     {
         perror("open error");
-        exit(1);
+        senderror(cfd);
+        return;
     }
     int n;
     char buf[1024];
@@ -150,7 +166,7 @@ void sendfile(int cfd, char* file)
 			} else if(errno == EINTR) {
 				printf("-----------------EINTR\n");
 				continue;
-			} else { 
+			} else {
 				perror("send error");	
 				exit(1);
 			}	
@@ -187,7 +203,9 @@ void http_request(int cfd, char * file)
     {
         perror("stat error");
         //此处可以选择别的处理，比如回发浏览器404页面
-        exit(1);
+        senderror(cfd);
+        return;
+        //exit(1);
     }
 
     //这是一个普通文件
