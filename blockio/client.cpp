@@ -8,7 +8,8 @@
 #include <ctype.h>
 #include <string>
 #include <vector>
-
+#include <sys/types.h>
+#include <memory>
 
 #define SER_PORT 9527
 
@@ -39,7 +40,7 @@ int main(int argc , char* argv[])
 
     int len = atoi(argv[1]);
     std::string message(len, 'S');
-    if(write(fd, message.c_str(), message.size()< 0)
+    if(write(fd, message.c_str(), message.size())< 0)
     {
        sys_err("write error");
     }

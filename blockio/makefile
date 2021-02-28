@@ -1,12 +1,13 @@
 CC = g++
-object = wrapper.o server.o client.o 
+source = wrapper.c server.c
+sourcec = client.cpp
 all:server cli
 
-server:server.o wrapper.o
-	$(CC) wrapper.c server.c -o server -Wall -g
+server:$(object)
+	$(CC)  wrapper.c server.c -o server -Wall -g
 
 cli:client.o
-	$(CC) client.c -o cli -Wall -g
+	$(CC) client.cpp -o cli -Wall -g
 
 .PHONY:clean
 clean:
