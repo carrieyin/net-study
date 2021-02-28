@@ -6,6 +6,10 @@
 //#include <netinet/in.h>
 #include <arpa/inet.h>
 #include <ctype.h>
+#include <string>
+#include <vector>
+
+
 #define SER_PORT 9527
 
 int sys_err(const char* s)
@@ -32,24 +36,20 @@ int main(int argc , char* argv[])
         sys_err("conn error");
     }
     printf("cli conneted\n");
-    char buf[BUFSIZ];
 
-    int counter = 10;
-
-    while(--counter)    
+    int len = atoi(argv[1]);
+    std::string message(len, 'S');
+    if(write(fd, message.c_str(), message.size()< 0)
     {
-        printf("client write \n");
-        if(write(fd, "Hello\n", 5)< 0)
-        {
-            sys_err("write error");
-        }
+       sys_err("write error");
+    }
         //int num = read(fd, buf, sizeof(buf));
         //注意buf长度为获取的真正的长度，否则会乱码
         //write(STDOUT_FILENO, buf, sizeof(buf));
-        write(STDOUT_FILENO, buf, 5);
-        //printf("write \n");
-        sleep(1);
-    }
+    std::vector<char> receiv(len); 
+    int nr = read(fd, receiv.data(), len);
+    printf("read %d bytes", nr);
+   
     printf("close client\n");
     close(fd);
 }
