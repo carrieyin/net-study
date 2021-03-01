@@ -49,8 +49,9 @@ int main(int argc , char* argv[])
         //write(STDOUT_FILENO, buf, sizeof(buf));
     std::vector<char> receiv(len); 
     int nr = read(fd, receiv.data(), len);
+
     printf("read %d bytes", nr);
-   
+  
     printf("close client\n");
     close(fd);
 }

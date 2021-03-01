@@ -4,9 +4,7 @@
 int main()
 {
     
-    int ret;
     char buf[BUFSIZ];
-    
 
     int fd = Socket(AF_INET, SOCK_STREAM, 0);
 
@@ -22,6 +20,7 @@ int main()
     struct sockaddr_in cli_addr;
     socklen_t cli_addr_len = sizeof(cli_addr);
     memset(&cli_addr, 0, sizeof(cli_addr));
+    
     int cfd = Accept(fd, (struct sockaddr*)&(cli_addr), &cli_addr_len);
 
     char cli_ip[30];
@@ -35,21 +34,17 @@ int main()
         sys_err("accect error");
     }
     printf("ser accecped \n");
-    while (1)
+    int nr ;
+    while ((nr = read(cfd, buf, sizeof(buf))) > 0)
     {
-        ret = read(cfd, buf, sizeof(buf));
-        if(ret < 0)
-        {
-            sys_err("ser read error");
-        }
         //printf("start read %d bytes\n", ret);
-        write(cfd, buf, ret);
-        for(int i = 0; i < ret; i++)
-        {
-            buf[i] = toupper(buf[i]);
-        }
-        printf("end read %d bytes\n", ret);
-        sleep(1);
+        int nw = write(cfd, buf, nr);
+	if(nw < nr)
+	{
+            break;
+	}
+
+        printf("end read %d bytes\n", nr);
         
     }
     
