@@ -1,6 +1,8 @@
 #include "wrapper.h"
 #define SER_PORT 9527
 
+#include <thread>
+
 void close(int cfd, int fd)
 {
     close(fd);
@@ -38,7 +40,7 @@ int main()
         }
         printf("ser accecped \n");
         count++;
-        std::thread thr([count](int cfd){
+        std::thread thr([count, &buf](int cfd){
             int nr ;
             while ((nr = read(cfd, buf, sizeof(buf))) > 0)
             {
@@ -53,5 +55,6 @@ int main()
                 
             }
             
-        }, closefd(cfd, fd));
+        }, close(cfd));
+    }
 }
