@@ -1,9 +1,13 @@
 #include "wrapper.h"
 #define SER_PORT 9527
 
+void close(int cfd, int fd)
+{
+    close(fd);
+    close(cfd);
+}
 int main()
 {
-    
     char buf[BUFSIZ];
 
     int fd = Socket(AF_INET, SOCK_STREAM, 0);
@@ -20,39 +24,34 @@ int main()
     while(true)
     {
 
-    struct sockaddr_in cli_addr;
-    socklen_t cli_addr_len = sizeof(cli_addr);
-    memset(&cli_addr, 0, sizeof(cli_addr));
-    
-    int cfd = Accept(fd, (struct sockaddr*)&(cli_addr), &cli_addr_len);
-
-    char cli_ip[30];
-    const char *p = inet_ntop(AF_INET, &cli_addr, cli_ip, cli_addr_len);
-    if(cfd == -1)
-    {
-        sys_err("accect error");
-    }
-    printf("ser accecped \n");
-    count++;
-    std::thread thr([count](int cfd){
-
-    }, closefd(cfd));
-    int nr ;
-    while ((nr = read(cfd, buf, sizeof(buf))) > 0)
-    {
-        //printf("start read %d bytes\n", ret);
-        int nw = write(cfd, buf, nr);
-	    if(nw < nr)
-	    {
-                break;
-	    }
-
-            printf("end read %d bytes\n", nr);
+        struct sockaddr_in cli_addr;
+        socklen_t cli_addr_len = sizeof(cli_addr);
+        memset(&cli_addr, 0, sizeof(cli_addr));
         
+        int cfd = Accept(fd, (struct sockaddr*)&(cli_addr), &cli_addr_len);
+
+        char cli_ip[30];
+        const char *p = inet_ntop(AF_INET, &cli_addr, cli_ip, cli_addr_len);
+        if(cfd == -1)
+        {
+            sys_err("accect error");
         }
-    
-        close(fd);
-        close(cfd);
-    }
-    
+        printf("ser accecped \n");
+        count++;
+        std::thread thr([count](int cfd){
+            int nr ;
+            while ((nr = read(cfd, buf, sizeof(buf))) > 0)
+            {
+                //printf("start read %d bytes\n", ret);
+                int nw = write(cfd, buf, nr);
+                if(nw < nr)
+                {
+                        break;
+                }
+
+                    printf("end read %d bytes\n", nr);
+                
+            }
+            
+        }, closefd(cfd, fd));
 }
