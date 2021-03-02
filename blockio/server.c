@@ -16,6 +16,9 @@ int main()
     Bind(fd, (struct sockaddr*)&ser_addr, len);
 
     Listen(fd);
+    int count = 0;
+    while(true)
+    {
 
     struct sockaddr_in cli_addr;
     socklen_t cli_addr_len = sizeof(cli_addr);
@@ -25,30 +28,31 @@ int main()
 
     char cli_ip[30];
     const char *p = inet_ntop(AF_INET, &cli_addr, cli_ip, cli_addr_len);
-    printf("cli ip: %s, port:%d \n", p, ntohs(cli_addr.sin_port));
-    //printf("cli ip:", inet_ntoa(&(cli_addr.sin_addr)));
-    //下面的函数报错
-    //getclientip(cfd, cli_addr, cli_addr_len);
     if(cfd == -1)
     {
         sys_err("accect error");
     }
     printf("ser accecped \n");
+    count++;
+    std::thread thr([count](int cfd){
+
+    }, closefd(cfd));
     int nr ;
     while ((nr = read(cfd, buf, sizeof(buf))) > 0)
     {
         //printf("start read %d bytes\n", ret);
         int nw = write(cfd, buf, nr);
-	if(nw < nr)
-	{
-            break;
-	}
+	    if(nw < nr)
+	    {
+                break;
+	    }
 
-        printf("end read %d bytes\n", nr);
+            printf("end read %d bytes\n", nr);
         
-    }
+        }
     
-    close(fd);
-    close(cfd);
+        close(fd);
+        close(cfd);
+    }
     
 }
