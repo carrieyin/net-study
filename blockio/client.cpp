@@ -39,6 +39,7 @@ int main(int argc , char* argv[])
     printf("cli conneted\n");
 
     int len = atoi(argv[1]);
+    printf("len is : %d \n", len);
     std::string message(len, 'S');
     if(write(fd, message.c_str(), message.size())< 0)
     {
@@ -50,7 +51,7 @@ int main(int argc , char* argv[])
     std::vector<char> receiv(len); 
     int nr = read(fd, receiv.data(), len);
 
-    printf("read %d bytes", nr);
+    printf("read %d bytes \n", nr);
   
     printf("close client\n");
     close(fd);

@@ -11,7 +11,6 @@ void close(int cfd, int fd)
 int main()
 {
     char buf[BUFSIZ];
-
     int fd = Socket(AF_INET, SOCK_STREAM, 0);
 
     struct sockaddr_in ser_addr;
@@ -25,7 +24,6 @@ int main()
     int count = 0;
     while(true)
     {
-
         struct sockaddr_in cli_addr;
         socklen_t cli_addr_len = sizeof(cli_addr);
         memset(&cli_addr, 0, sizeof(cli_addr));
@@ -48,11 +46,9 @@ int main()
                 int nw = write(cfd, buf, nr);
                 if(nw < nr)
                 {
-                        break;
+                    break;
                 }
-
-                    printf("end read %d bytes\n", nr);
-                
+                printf("end read %d bytes\n", nr);               
             }
             
         }, close(cfd));
