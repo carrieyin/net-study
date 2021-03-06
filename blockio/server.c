@@ -37,11 +37,14 @@ int main()
             sys_err("accect error");
         }
         printf("ser accecped \n");
+        printf("cfd is :%d \n", cfd);
         count++;
-        std::thread thr([count, &buf](int cfd){
+        std::thread thr([count, &buf, cfd](){
             int nr ;
+            printf("in thr cfd is :%d \n", cfd);
             while ((nr = read(cfd, buf, sizeof(buf))) > 0)
             {
+                printf("read bytes: %d\n", nr);
                 //printf("start read %d bytes\n", ret);
                 int nw = write(cfd, buf, nr);
                 if(nw < nr)
@@ -51,6 +54,6 @@ int main()
                 printf("end read %d bytes\n", nr);               
             }
             
-        }, close(cfd));
+        });
     }
 }
