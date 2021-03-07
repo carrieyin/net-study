@@ -2,13 +2,13 @@ CC = g++
 CFLAGS = -std=c++11
 source = wrapper.cpp server.cpp 
 sourcec = client.cpp
-objects = server.o wrapper.o
-objectc = client.o
+objects = $(patsubst %.cpp, %.o, $(source))
+objectc = $(patsubst %.cpp, %.o, $(sourcec))
 
 all:server cli
 
 $(objects):$(source)
-	$(CC) $(CFLAGS) -c -std=c++11 $(source) 
+	$(CC) $(CFLAGS) -c  $(source) 
 
 server:$(objects)
 	$(CC)   $(objects) -o server -Wall -g 
