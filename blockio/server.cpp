@@ -10,7 +10,7 @@ void close(int cfd, int fd)
 }
 int main()
 {
-    char buf[BUFSIZ];
+    
     int fd = Socket(AF_INET, SOCK_STREAM, 0);
 
     struct sockaddr_in ser_addr;
@@ -38,22 +38,28 @@ int main()
         }
         printf("ser accecped \n");
         printf("cfd is :%d \n", cfd);
-        count++;
-        std::thread thr([count, &buf, cfd](){
+        
+        std::thread thr([&count, cfd](){
             int nr ;
+            char buf[BUFSIZ];
+            count++;
+            bzero(buf, sizeof(buf));
             printf("in thr cfd is :%d \n", cfd);
+            int i = 0;
             while ((nr = read(cfd, buf, sizeof(buf))) > 0)
             {
-                printf("read bytes: %d\n", nr);
+
+                //printf("read bytes: %d\n", nr);
                 //printf("start read %d bytes\n", ret);
                 int nw = write(cfd, buf, nr);
-                if(nw < nr)
+                /*if(nw < nr)
                 {
                     break;
-                }
-                printf("end read %d bytes\n", nr);               
+                }*/
+                printf("thread : %d, read %d times , %d bytes \n", count, i++,nr);               
             }
             
         });
+        thr.detach();
     }
 }
