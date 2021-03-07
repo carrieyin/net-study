@@ -7,7 +7,7 @@ objectc = client.o
 
 all:server cli
 
-server:
+server:$(source)
 	g++  -std=c++11 $(source) -o server -Wall -g 
 	
 cli:$(objectc)
