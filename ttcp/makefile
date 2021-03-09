@@ -1,8 +1,8 @@
 sources=$(shell find comm/*.cc) echo.cc
 ob = $(patsubst %.cc, %.o, $(sources))
 objects = $(notdir $(ob))
+#bins = $(addprefix bin/, $(objects))
 head = comm
-VPATH = ./
 all: server 
 
 $(objects):$(sources)
