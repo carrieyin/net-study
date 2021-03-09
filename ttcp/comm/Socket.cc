@@ -111,14 +111,14 @@ int Socket::send(const void* buf, int len)
 
 Socket Socket::createTCP(sa_family_t family)
 {
-  int sockfd = ::socket(family, SOCK_STREAM | SOCK_CLOEXEC, IPPROTO_TCP);
+  int sockfd = ::socket(family, SOCK_STREAM , IPPROTO_TCP);
   assert(sockfd >= 0);
   return Socket(sockfd);
 }
 
 Socket Socket::createUDP(sa_family_t family)
 {
-  int sockfd = ::socket(family, SOCK_DGRAM | SOCK_CLOEXEC, IPPROTO_UDP);
+  int sockfd = ::socket(family, SOCK_DGRAM , IPPROTO_UDP);
   assert(sockfd >= 0);
   return Socket(sockfd);
 }
