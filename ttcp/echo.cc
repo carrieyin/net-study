@@ -4,7 +4,7 @@
 
 #include <thread>
 #include <string.h>
-
+#include <iostream>
 // a thread-per-connection current echo server
 int main(int argc, char* argv[])
 {
@@ -17,6 +17,7 @@ int main(int argc, char* argv[])
       nodelay = true;
   }
   InetAddress listenAddr(3007, ipv6);
+  std::cout<<"ipv6:" <<  ipv6 << std::endl;
   Acceptor acceptor(listenAddr);
   printf("Listen on port 3007\n");
   printf("Accepting... Ctrl-C to exit\n");
