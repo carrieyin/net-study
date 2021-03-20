@@ -25,8 +25,8 @@ int main()
     int cfd = Accept(fd, (struct sockaddr*)&(cli_addr), &cli_addr_len);
 
     char cli_ip[30];
-    const char *p = inet_ntop(AF_INET, &cli_addr, cli_ip, cli_addr_len);
-    //printf("cli ip: %s, port:%d \n", p, ntohs(cli_addr.sin_port));
+    const char *p = inet_ntop(AF_INET, &cli_addr.sin_addr, cli_ip, cli_addr_len);
+    printf("cli ip: %s, port:%d \n", p, ntohs(cli_addr.sin_port));
     printf("cli ip: %s", inet_ntoa(cli_addr.sin_addr));
     //下面的函数报错
     //getclientip(cfd, cli_addr, cli_addr_len);
